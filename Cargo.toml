@@ -1,0 +1,44 @@
+[package]
+name = "opp"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+description = "A local broker for the 1Password CLI on macOS"
+publish = false
+
+[features]
+default = []
+test-support = []
+
+[dependencies]
+libc = "0.2"
+nix = { version = "0.31", features = ["fs", "ioctl", "poll", "process", "signal", "socket", "term", "time", "uio", "user"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+time = { version = "0.3", features = ["formatting"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "opp-test-op"
+path = "tests/fixtures/fake_op.rs"
+required-features = ["test-support"]
+test = false
+bench = false
+
+[[test]]
+name = "broker_integration"
+path = "tests/broker_integration.rs"
+required-features = ["test-support"]
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+all = "deny"

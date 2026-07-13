@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install pinned Rust toolchain
+        run: rustup show active-toolchain
+      - name: Check formatting
+        run: cargo fmt --all --check
+      - name: Run Clippy
+        run: cargo clippy --locked --all-targets --all-features
+      - name: Run unit and broker integration tests
+        run: cargo test --locked --all-targets --all-features -- --test-threads=1
+
+  native-release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            target: aarch64-apple-darwin
+            architecture: arm64
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+            architecture: amd64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install pinned Rust toolchain
+        run: rustup show active-toolchain
+      - name: Build and validate archive
+        run: scripts/package-release.sh 0.1.0 "${{ matrix.architecture }}" "${{ matrix.target }}" dist
+      - name: Inspect archive
+        run: |
+          test "$(tar -tzf dist/opp_0.1.0_darwin_${{ matrix.architecture }}.tar.gz)" = "opp"
+          shasum -a 256 dist/opp_0.1.0_darwin_${{ matrix.architecture }}.tar.gz
