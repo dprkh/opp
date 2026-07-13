@@ -1,10 +1,6 @@
-# opp
-
 `opp` is a macOS-only local broker for user-authorized 1Password CLI access. It retains one background terminal so independent local processes can reuse authorization without automating the 1Password UI.
 
-This is a proposed public preview. Read [SPEC.md](SPEC.md) before using it, especially the shared-socket and `op run` security model.
-
-## Install or upgrade
+### Install or upgrade
 
 Install the latest release to `~/.local/bin/opp`, or run the same command again to replace an older version:
 
@@ -14,7 +10,7 @@ curl -L --proto '=https' --tlsv1.2 -sSf https://github.com/dprkh/opp/releases/la
 
 The installer verifies the release checksum and stops a running broker before replacing the executable. Add `~/.local/bin` to `PATH` if the installer reports that it is missing.
 
-## Build
+### Build
 
 The pinned Rust toolchain builds both Apple architectures and targets macOS 12 or later:
 
@@ -22,7 +18,7 @@ The pinned Rust toolchain builds both Apple architectures and targets macOS 12 o
 cargo build --release --locked --no-default-features --bin opp
 ```
 
-## Use
+### Use
 
 Authorize from a user-controlled terminal, then run non-interactive `op` commands through the broker:
 
@@ -42,13 +38,3 @@ opp exec --account work.1password.com -- item get Example --format=json
 
 Every same-user process that can reach the broker socket receives all authority held by the broker, including arbitrary same-user execution through `op run`. Account selectors are routing keys, not security boundaries.
 
-## Test
-
-```sh
-cargo fmt --all --check
-cargo clippy --locked --all-targets --all-features
-cargo test --locked --all-targets --all-features -- --test-threads=1
-bash tests/install.sh
-```
-
-The `test-support` feature and `opp-test-op` binary exist only for isolated automated broker tests. Release builds disable that feature.
