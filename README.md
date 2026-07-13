@@ -1,4 +1,4 @@
-`opp` is a macOS-only local broker for user-authorized 1Password CLI access. It retains one background terminal so independent local processes can reuse authorization without automating the 1Password UI.
+`opp` is a macOS-only local broker for user-authorized 1Password CLI access. It retains one background terminal so independent local processes can reuse authorization.
 
 ### Install or upgrade
 
