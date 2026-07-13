@@ -56,7 +56,7 @@ trap 'rm -rf "$staging"' EXIT
 cp "$binary" "$staging/opp"
 chmod 755 "$staging/opp"
 
-archive="$output_directory/opp_${version}_darwin_${architecture}.tar.gz"
+archive="$output_directory/opp-${target}.tar.gz"
 COPYFILE_DISABLE=1 tar -C "$staging" -czf "$archive" opp
 if [[ "$(tar -tzf "$archive")" != "opp" ]]; then
   echo "release archive must contain exactly one file named opp" >&2

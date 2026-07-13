@@ -4,6 +4,16 @@
 
 This is a proposed public preview. Read [SPEC.md](SPEC.md) before using it, especially the shared-socket and `op run` security model.
 
+## Install or upgrade
+
+Install the latest release to `~/.local/bin/opp`, or run the same command again to replace an older version:
+
+```sh
+curl -L --proto '=https' --tlsv1.2 -sSf https://github.com/dprkh/opp/releases/latest/download/install.sh | sh
+```
+
+The installer verifies the release checksum and stops a running broker before replacing the executable. Add `~/.local/bin` to `PATH` if the installer reports that it is missing.
+
 ## Build
 
 The pinned Rust toolchain builds both Apple architectures and targets macOS 12 or later:
@@ -38,6 +48,7 @@ Every same-user process that can reach the broker socket receives all authority 
 cargo fmt --all --check
 cargo clippy --locked --all-targets --all-features
 cargo test --locked --all-targets --all-features -- --test-threads=1
+bash tests/install.sh
 ```
 
 The `test-support` feature and `opp-test-op` binary exist only for isolated automated broker tests. Release builds disable that feature.

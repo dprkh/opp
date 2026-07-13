@@ -39,12 +39,21 @@ The public preview targets one local macOS user and one shared local broker. Cro
 The `v0.1.0` GitHub Release contains:
 
 ```text
-opp_0.1.0_darwin_arm64.tar.gz
-opp_0.1.0_darwin_amd64.tar.gz
+opp-aarch64-apple-darwin.tar.gz
+opp-x86_64-apple-darwin.tar.gz
+install.sh
 SHA256SUMS
 ```
 
-Each archive contains one executable named `opp`. `SHA256SUMS` covers both archives. Preview binaries are not signed or notarized by Apple; the checksum detects a changed download but does not authenticate the publisher independently of GitHub. macOS may therefore require the user to approve the binary in Privacy & Security before first use.
+Each archive contains one executable named `opp`. `SHA256SUMS` covers both archives and `install.sh`. Preview binaries are not signed or notarized by Apple; the checksum detects a changed download but does not authenticate the publisher independently of GitHub. macOS may therefore require the user to approve the binary in Privacy & Security before first use.
+
+The supported install and upgrade command is:
+
+```sh
+curl -L --proto '=https' --tlsv1.2 -sSf https://github.com/dprkh/opp/releases/latest/download/install.sh | sh
+```
+
+The installer accepts only macOS `arm64` and `x86_64`, downloads the matching archive and `SHA256SUMS` from the latest GitHub Release, and verifies the archive before running it. It requires the archive to contain only an executable named `opp` whose version output begins with `opp `. It then uses that executable's version-independent `stop` command and atomically installs it as `~/.local/bin/opp`. A failure before replacement leaves the installed executable unchanged. The installer does not use elevated privileges or modify shell profiles; it reports when `~/.local/bin` is absent from `PATH`.
 
 Versions follow Semantic Versioning with a `v`-prefixed Git tag. Within `0.x`, patch releases preserve the documented CLI, JSON, exit-status, and client-broker contract; a minor release may change it. Release binaries write their version and a trailing newline exactly as:
 
@@ -52,11 +61,7 @@ Versions follow Semantic Versioning with a `v`-prefixed Git tag. Within `0.x`, p
 opp 0.1.0
 ```
 
-`opp` has no automatic updater or release-check network request. To upgrade, the user stops the broker and replaces the executable:
-
-```sh
-opp stop
-```
+`opp` has no automatic updater or release-check network request. Re-running the installer is the supported upgrade path and performs the required broker stop before replacement.
 
 A client that encounters an incompatible broker must fail without sending a normal request and instruct the user to stop and restart the broker. The version-independent stop handshake remains available across protocol versions.
 
@@ -280,7 +285,7 @@ Automated tests with a fixture executable and controllable time must verify:
 - effective-user runtime paths despite a changed client `HOME`, directory and socket permissions, peer-user rejection, descriptor passing, singleton startup races, stale-socket safety, version mismatch, and idempotent stop; and
 - absence of request, environment, account-selector, probe, and stream canaries from diagnostics and runtime files.
 
-Release validation must verify that both archives run on their matching architecture on macOS 12 or later, contain one `opp` executable, report the tagged version, and match `SHA256SUMS`. A fresh downloaded artifact must be tested through macOS's unsigned-software Gatekeeper flow.
+Release validation must verify that both archives run on their matching architecture on macOS 12 or later, contain one `opp` executable, report the tagged version, and match `SHA256SUMS`. Installer tests must verify both architecture mappings, checksum and archive rejection before replacement, version validation, broker stop, atomic fresh installation and replacement, unsupported-platform rejection, and the `PATH` diagnostic. The published install command must succeed twice on both release architectures. A fresh downloaded artifact must be tested through macOS's unsigned-software Gatekeeper flow.
 
 An integration test against a supported Codex release must verify that a workspace-derived permission profile can connect only to the configured broker socket. The test must also demonstrate that work delegated through the broker is outside the Codex filesystem sandbox and can reach every account authorized in that broker.
 
@@ -312,5 +317,8 @@ Failure of terminal reuse, account routing, prompt cancellation, raw stream beha
 - [1Password community-project disclaimer](https://www.1password.dev/community/disclaimer) establishes that third-party projects are not endorsed or supported by 1Password.
 - [Codex permissions](https://developers.openai.com/codex/permissions) documents workspace-derived profiles and exact Unix-socket allowlists as explicit local escape hatches.
 - [Apple Gatekeeper guidance](https://support.apple.com/en-us/102445) documents the warnings and manual approval applicable to unsigned, unnotarized downloads.
+- [GitHub release links](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases) define the stable `releases/latest/download` asset URL used by the installer.
+- [`cargo-binstall` installation](https://github.com/cargo-bins/cargo-binstall#quickly) provides the production precedent for a TLS-constrained curl installer backed by GitHub Releases.
+- [`uv` installation](https://docs.astral.sh/uv/getting-started/installation/) provides the production precedent for a user-local `~/.local/bin` install.
 - [Semantic Versioning](https://semver.org/) supplies the release-versioning model.
 - [Go `time.ParseDuration`](https://pkg.go.dev/time#ParseDuration) defines the accepted `--timeout` duration syntax; `opp` applies its own narrower value range.

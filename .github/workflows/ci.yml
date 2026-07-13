@@ -21,6 +21,8 @@ jobs:
         run: cargo clippy --locked --all-targets --all-features
       - name: Run unit and broker integration tests
         run: cargo test --locked --all-targets --all-features -- --test-threads=1
+      - name: Test release installer
+        run: bash tests/install.sh
 
   native-release:
     strategy:
@@ -42,5 +44,5 @@ jobs:
         run: scripts/package-release.sh 0.1.0 "${{ matrix.architecture }}" "${{ matrix.target }}" dist
       - name: Inspect archive
         run: |
-          test "$(tar -tzf dist/opp_0.1.0_darwin_${{ matrix.architecture }}.tar.gz)" = "opp"
-          shasum -a 256 dist/opp_0.1.0_darwin_${{ matrix.architecture }}.tar.gz
+          test "$(tar -tzf dist/opp-${{ matrix.target }}.tar.gz)" = "opp"
+          shasum -a 256 dist/opp-${{ matrix.target }}.tar.gz
